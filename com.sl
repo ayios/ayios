@@ -12,6 +12,11 @@ variable LINES, COLUMNS;
 
 variable COMDIR;
 
+define exit_me (x)
+{
+  exit (x);
+}
+
 define verboseon ()
 {
   loadfrom ("print", "tostdout", NULL, &on_eval_err);

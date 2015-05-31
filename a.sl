@@ -22,9 +22,10 @@ catch AnyError:
   on_eval_err (["Error: " + __get_exception_info.message], __get_exception_info.error);
 
 loadfrom ("proc", "setenv", NULL, &on_eval_err);
-loadfrom ("proc", "procInit", NULL, &on_eval_err);
 loadfrom ("sys", "which", NULL, &on_eval_err);
 loadfrom ("sys", "getpw", 1, &on_eval_err);
 loadfrom ("boot", "getenviron", 1, &on_eval_err);
 
 boot->getenviron ();
+
+loadfrom ("proc", "procInit", NULL, &on_eval_err);
