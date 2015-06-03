@@ -28,4 +28,19 @@ loadfrom ("boot", "getenviron", 1, &on_eval_err);
 
 boot->getenviron ();
 
+ifnot (access (TEMPDIR, F_OK))
+  {
+  ifnot (_isdirectory (TEMPDIR))
+    {
+    tostderr (TEMPDIR + " is not a directory");
+    exit (1);
+    }
+  }
+else
+  if (-1 == mkdir (TEMPDIR))
+    {
+    tostderr ("cannot create directory " + errno_string (errno));
+    exit (1);
+    }
+
 loadfrom ("proc", "procInit", NULL, &on_eval_err);

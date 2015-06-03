@@ -6,7 +6,6 @@ loadfrom ("stdio", "readfile", NULL, &on_eval_err);
 loadfrom ("parse", "cmdopt", NULL, &on_eval_err);
 loadfrom ("print", "null_tostdout", NULL, &on_eval_err);
 
-
 variable LINES, COLUMNS;
 (LINES, COLUMNS) = gettermsize ();
 
@@ -16,6 +15,20 @@ define exit_me (x)
 {
   exit (x);
 }
+
+define send_msg_dr (msg)
+{
+  tostdout (msg);
+}
+
+define sigint_handler (sig)
+{
+  input->reset_tty ();
+  tostderr ("\b\bprocess interrupted by the user");
+  exit_me (130);
+}
+
+signal (SIGINT, &sigint_handler);
 
 define verboseon ()
 {
