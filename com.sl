@@ -1,4 +1,6 @@
 variable com = substr (path_basename_sans_extname (__argv[0]), 2, -1);
+variable openstdout = 0;
+define initproc (p) {}
 
 loadfrom ("input", "inputInit", NULL, &on_eval_err);
 loadfrom ("smg", "gettermsize", NULL, &on_eval_err);
@@ -18,7 +20,7 @@ define exit_me (x)
 
 define send_msg_dr (msg)
 {
-  tostdout (msg);
+  tostdout (msg + "\n");
 }
 
 define sigint_handler (sig)
@@ -34,6 +36,14 @@ define verboseon ()
 {
   loadfrom ("print", "tostdout", NULL, &on_eval_err);
 }
+
+define verboseoff ()
+{
+  loadfrom ("print", "null_tostdout", NULL, &on_eval_err);
+}
+
+define close_smg ();
+define restore_smg ();
 
 define ask (questar, ar)
 {
