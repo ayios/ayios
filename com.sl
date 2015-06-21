@@ -6,7 +6,7 @@ loadfrom ("input", "inputInit", NULL, &on_eval_err);
 loadfrom ("smg", "gettermsize", NULL, &on_eval_err);
 loadfrom ("stdio", "readfile", NULL, &on_eval_err);
 loadfrom ("parse", "cmdopt", NULL, &on_eval_err);
-loadfrom ("print", "tostdout", NULL, &on_eval_err);
+loadfrom ("print", "null_tostdout", NULL, &on_eval_err);
 
 variable LINES, COLUMNS;
 (LINES, COLUMNS) = gettermsize ();
@@ -65,6 +65,7 @@ define ask (questar, ar)
 
 define _usage ()
 {
+  verboseon ();
   variable
     if_opt_err = _NARGS ? () : " ",
     helpfile = qualifier ("helpfile", sprintf ("%s/help.txt", COMDIR)),
@@ -94,6 +95,7 @@ define _usage ()
 
 define info ()
 {
+  verboseon ();
   variable
     info_ref = NULL,
     infofile = qualifier ("infofile", sprintf ("%s/desc.txt", COMDIR)),
