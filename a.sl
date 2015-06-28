@@ -44,4 +44,19 @@ else
     exit (1);
     }
 
+ifnot (access (HISTDIR, F_OK))
+  {
+  ifnot (_isdirectory (HISTDIR))
+    {
+    tostderr (HISTDIR + " is not a directory");
+    exit (1);
+    }
+  }
+else
+  if (-1 == mkdir (HISTDIR))
+    {
+    tostderr ("cannot create directory " + errno_string (errno));
+    exit (1);
+    }
+
 loadfrom ("proc", "procInit", NULL, &on_eval_err);

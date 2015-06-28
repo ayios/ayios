@@ -1,66 +1,101 @@
-private variable SESSION = Assoc_Type[Integer_Type];
-private variable OS = Assoc_Type[String_Type];
+public variable HASHEDDATA;
+public variable STDERR = TEMPDIR + "/" + string (PID) + "stderr.os";
+public variable STDERRFD;
+public variable STDERRFDDUP = NULL;
+public variable ERR;
+public variable OSUID = UID;
+public variable OSUSR = setpwname (OSUID, 1);
+public variable VERBOSITY = 0;
+public variable LOGERR = 0x01;
+public variable LOGNORM = 0x02;
+public variable LOGALL = 0x04;
+
+VERBOSITY = VERBOSITY|LOGALL|LOGNORM|LOGERR;
 
 loadfrom ("posix", "redirstreams", NULL, &on_eval_err);
 loadfrom ("boot", "login", 1, &on_eval_err);
-loadfrom ("boot", "setenviron", 1, &on_eval_err);
 loadfrom ("boot", "getloginpaswd", 1, &on_eval_err);
 loadfrom ("crypt", "cryptInit", NULL, &on_eval_err);
 
-if (UID)
-  USER = sys->getpwname (UID, 1);
+ifnot (ISSUPROC)
+  USER = setpwname (UID, 1);
 else
   {
   USER = boot->getloginname ();
-  (UID, GID) = sys->getpwuidgid (USER, 1);
+  (UID, GID) = setpwuidgid (USER, 1);
   }
 
-GROUP = sys->getgrname (GID, 1);
+GROUP = setgrname (GID, 1);
  
-boot->setenviron (SESSION, OS);
-
 % ------------------ END HERE BOOT? ------------ %
 
 loadfrom ("smg", "smgInit", NULL, &on_eval_err);
+loadfrom ("app/ved/functions", "vedlib", NULL, &on_eval_err);
 loadfrom ("input", "inputInit", NULL, &on_eval_err);
-loadfrom ("boot", "getsessionhashpaswd", 1, &on_eval_err);
-loadfrom ("boot", "confirmsessionpaswd", 1, &on_eval_err);
-loadfrom ("me", "exit", NULL, &on_eval_err);
+loadfrom ("boot", "passwd", 1, &on_eval_err);
 
 if (ISSUPROC)
   {
   boot->getloginpaswd (USER, UID, GID, SLSH_BIN);
 
-  OS["HASH"] = boot->getsessionhashpaswd ();
- 
-  if (NULL == boot->confirmsessionpaswd (OS["HASH"]))
-    on_eval_err ("confirm failed", 1);
+  HASHEDDATA = boot->encryptpasswd (NULL);
   }
 
-% ok at this point
-%redirstderr ("/tmp/rstderr", NULL, NULL);
-
-define quit (str, code)
+private define at_exit ()
 {
-  on_eval_err (str, atoi (code));
+  smg->reset ();
+  input->at_exit ();
+  ifnot (NULL == STDERRFDDUP)
+    () = dup2_fd (STDERRFDDUP, 2);
 }
 
-smg->setrc (10, 10);
-smg->addnstr ("Hello world", 20);
-smg->refresh ();
+public define exit_me (code)
+{
+  at_exit ();
+  exit (code);
+}
 
-variable mywind = struct
-  {
-  ptr = [10, 16],
-  };
+STDERRFDDUP = redirstderr (STDERR, NULL, NULL);
 
-variable CLINEC = Assoc_Type[Ref_Type];
-CLINEC["q"] = &quit;
+if (NULL == STDERRFDDUP)
+  exit_me (1);
 
-loadfrom ("wind", "rootTopline", NULL, &on_eval_err);
-loadfrom ("rline", "rlineInit", NULL, &on_eval_err);
+STDERRFD = ();
 
-variable rl = rline->init (LINES - 2, ":", 6, LINES, COLUMNS, ["q", "write"], [10, 16]);
-rline->readline (rl, " -- ROOT --", " -- ROOT --", CLINEC);
+define tostderr (str)
+{
+  () = lseek (STDERRFD, 0, SEEK_END);
+  () = write (STDERRFD, str + "\n");
+}
 
-exit_me ();
+define on_eval_err (ar, exit_code)
+{
+  at_exit ();
+ 
+  array_map (&tostderr, ar);
+
+  exit_me (exit_code);
+}
+
+
+define _log_ (str, logtype)
+{
+  if (VERBOSITY & logtype)
+    tostderr (str);
+}
+
+loadfrom ("os", "osInit", NULL, &on_eval_err);
+
+define on_eval_err (ar, code)
+{
+  array_map (&tostderr, ar);
+  tostderr ("err: " + string (code));
+
+  osloop ();
+}
+
+_log_ ("started ayios session, with pid " + string (PID), LOGNORM);
+
+osdraw (ERR);
+
+osloop ();
