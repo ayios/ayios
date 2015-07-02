@@ -1,50 +1,49 @@
+ifnot (ISSUPROC)
+  {
+  tostderr ("you should run this script with super user rights");
+  exit (1);
+  }
+
+sigprocmask (SIG_BLOCK, [SIGINT]);
+
 public variable HASHEDDATA;
 public variable STDERR = TEMPDIR + "/" + string (PID) + "stderr.os";
 public variable STDERRFD;
 public variable STDERRFDDUP = NULL;
 public variable ERR;
 public variable OSUID = UID;
-public variable OSUSR = setpwname (OSUID, 1);
+public variable OSUSR = USER;
 public variable VERBOSITY = 0;
 public variable LOGERR = 0x01;
 public variable LOGNORM = 0x02;
 public variable LOGALL = 0x04;
+public variable ALLOWIDLED = 1;
 
-VERBOSITY = VERBOSITY|LOGALL|LOGNORM|LOGERR;
+VERBOSITY = VERBOSITY|LOGNORM|LOGERR;
+
+loadfrom ("input", "inputInit", NULL, &on_eval_err);
+
+public define exit_me (code)
+{
+  input->at_exit ();
+  exit (code);
+}
+
+loadfrom ("os", "passwd", 1, &on_eval_err);
+loadfrom ("os", "login", 1, &on_eval_err);
+
+HASHEDDATA = os->login ();
 
 loadfrom ("posix", "redirstreams", NULL, &on_eval_err);
-loadfrom ("boot", "login", 1, &on_eval_err);
-loadfrom ("boot", "getloginpaswd", 1, &on_eval_err);
-loadfrom ("crypt", "cryptInit", NULL, &on_eval_err);
-
-ifnot (ISSUPROC)
-  USER = setpwname (UID, 1);
-else
-  {
-  USER = boot->getloginname ();
-  (UID, GID) = setpwuidgid (USER, 1);
-  }
-
-GROUP = setgrname (GID, 1);
- 
-% ------------------ END HERE BOOT? ------------ %
-
 loadfrom ("smg", "smgInit", NULL, &on_eval_err);
 loadfrom ("app/ved/functions", "vedlib", NULL, &on_eval_err);
-loadfrom ("input", "inputInit", NULL, &on_eval_err);
-loadfrom ("boot", "passwd", 1, &on_eval_err);
-
-if (ISSUPROC)
-  {
-  boot->getloginpaswd (USER, UID, GID, SLSH_BIN);
-
-  HASHEDDATA = boot->encryptpasswd (NULL);
-  }
 
 private define at_exit ()
 {
   smg->reset ();
+  
   input->at_exit ();
+
   ifnot (NULL == STDERRFDDUP)
     () = dup2_fd (STDERRFDDUP, 2);
 }
@@ -89,7 +88,10 @@ loadfrom ("os", "osInit", NULL, &on_eval_err);
 define on_eval_err (ar, code)
 {
   array_map (&tostderr, ar);
+
   tostderr ("err: " + string (code));
+
+  osdraw (ERR);
 
   osloop ();
 }
