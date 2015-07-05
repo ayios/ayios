@@ -22,21 +22,7 @@ public variable ALLOWIDLED = 1;
 VERBOSITY = VERBOSITY|LOGNORM|LOGERR;
 
 loadfrom ("input", "inputInit", NULL, &on_eval_err);
-
-public define exit_me (code)
-{
-  input->at_exit ();
-  exit (code);
-}
-
-loadfrom ("os", "passwd", 1, &on_eval_err);
-loadfrom ("os", "login", 1, &on_eval_err);
-
-HASHEDDATA = os->login ();
-
-loadfrom ("posix", "redirstreams", NULL, &on_eval_err);
 loadfrom ("smg", "smgInit", NULL, &on_eval_err);
-loadfrom ("app/ved/functions", "vedlib", NULL, &on_eval_err);
 
 private define at_exit ()
 {
@@ -53,6 +39,14 @@ public define exit_me (code)
   at_exit ();
   exit (code);
 }
+
+loadfrom ("os", "passwd", 1, &on_eval_err);
+loadfrom ("os", "login", 1, &on_eval_err);
+
+HASHEDDATA = os->login ();
+
+loadfrom ("posix", "redirstreams", NULL, &on_eval_err);
+loadfrom ("app/ved/functions", "vedlib", NULL, &on_eval_err);
 
 STDERRFDDUP = redirstderr (STDERR, NULL, NULL);
 
@@ -75,7 +69,6 @@ define on_eval_err (ar, exit_code)
 
   exit_me (exit_code);
 }
-
 
 define _log_ (str, logtype)
 {
