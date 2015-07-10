@@ -15,6 +15,7 @@ variable COMDIR;
 
 define exit_me (x)
 {
+  input->at_exit ();
   exit (x);
 }
 
@@ -25,7 +26,7 @@ define send_msg_dr (msg)
 
 define sigint_handler (sig)
 {
-  input->reset_tty ();
+  input->at_exit ();
   tostderr ("\b\bprocess interrupted by the user");
   exit_me (130);
 }
@@ -55,9 +56,7 @@ define ask (questar, ar)
   variable chr;
  
   while (chr = getch (), 0 == any (ar == chr));
- 
-  input->reset_tty ();
-
+  
   () = fprintf (stderr, "\n");
  
   return chr;

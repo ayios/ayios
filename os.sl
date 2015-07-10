@@ -46,7 +46,7 @@ loadfrom ("os", "login", 1, &on_eval_err);
 HASHEDDATA = os->login ();
 
 loadfrom ("posix", "redirstreams", NULL, &on_eval_err);
-loadfrom ("app/ved/functions", "vedlib", NULL, &on_eval_err);
+loadfrom ("ved", "vedlib", NULL, &on_eval_err);
 
 STDERRFDDUP = redirstderr (STDERR, NULL, NULL);
 
