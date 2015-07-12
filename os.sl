@@ -24,23 +24,33 @@ VERBOSITY = VERBOSITY|LOGNORM|LOGERR;
 loadfrom ("input", "inputInit", NULL, &on_eval_err);
 loadfrom ("smg", "smgInit", NULL, &on_eval_err);
 
+define on_eval_err (ar, code)
+{
+  smg->reset ();
+  input->at_exit ();
+  array_map (Void_Type, &tostderr, ar);
+  exit (code); 
+}
+
 private define at_exit ()
 {
   smg->reset ();
-  
   input->at_exit ();
-
+  
   ifnot (NULL == STDERRFDDUP)
     () = dup2_fd (STDERRFDDUP, 2);
+
+  () = fprintf (stderr, "\b");
 }
 
-public define exit_me (code)
+define exit_me (code)
 {
   at_exit ();
   exit (code);
 }
 
 loadfrom ("os", "passwd", 1, &on_eval_err);
+loadfrom ("rline", "rlineInit", NULL, &on_eval_err);
 loadfrom ("os", "login", 1, &on_eval_err);
 
 HASHEDDATA = os->login ();
