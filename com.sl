@@ -4,7 +4,6 @@ define initproc (p) {}
 
 loadfrom ("input", "inputInit", NULL, &on_eval_err);
 loadfrom ("smg", "gettermsize", NULL, &on_eval_err);
-loadfrom ("stdio", "readfile", NULL, &on_eval_err);
 loadfrom ("parse", "cmdopt", NULL, &on_eval_err);
 loadfrom ("print", "null_tostdout", NULL, &on_eval_err);
 

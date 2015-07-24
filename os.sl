@@ -19,7 +19,7 @@ public variable LOGNORM = 0x02;
 public variable LOGALL = 0x04;
 public variable ALLOWIDLED = 1;
 
-VERBOSITY = VERBOSITY|LOGNORM|LOGERR;
+VERBOSITY |= (LOGNORM|LOGERR);
 
 loadfrom ("input", "inputInit", NULL, &on_eval_err);
 loadfrom ("smg", "smgInit", NULL, &on_eval_err);
@@ -52,11 +52,10 @@ define exit_me (code)
 loadfrom ("os", "passwd", 1, &on_eval_err);
 loadfrom ("rline", "rlineInit", NULL, &on_eval_err);
 loadfrom ("os", "login", 1, &on_eval_err);
+loadfrom ("posix", "redirstreams", NULL, &on_eval_err);
+loadfrom ("api", "vedlib", NULL, &on_eval_err);
 
 HASHEDDATA = os->login ();
-
-loadfrom ("posix", "redirstreams", NULL, &on_eval_err);
-loadfrom ("ved", "vedlib", NULL, &on_eval_err);
 
 STDERRFDDUP = redirstderr (STDERR, NULL, NULL);
 
@@ -94,13 +93,13 @@ define on_eval_err (ar, code)
 
   tostderr ("err: " + string (code));
 
-  osdraw (ERR);
+  draw (ERR);
 
   osloop ();
 }
 
 _log_ ("started ayios session, with pid " + string (PID), LOGNORM);
 
-osdraw (ERR);
+draw (ERR);
 
 osloop ();

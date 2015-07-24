@@ -8,4 +8,9 @@ sigprocmask (SIG_BLOCK, [SIGINT]);
   
 define _log_ (str) {}
 
+define exit_me (code)
+{
+  exit (code);
+}
+
 loadfrom ("app/" + app, app, NULL, &on_eval_err);
