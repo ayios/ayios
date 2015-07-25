@@ -21,11 +21,8 @@ try
 catch AnyError:
   on_eval_err (["Error: " + __get_exception_info.message], __get_exception_info.error);
 
-loadfrom ("proc", "setenv", NULL, &on_eval_err);
 loadfrom ("sys", "getpw", NULL, &on_eval_err);
-loadfrom ("os", "bootenviron", 1, &on_eval_err);
-
-os->setenviron ();
+loadfrom ("os", "bootenviron", NULL, &on_eval_err);
 
 ifnot (access (TEMPDIR, F_OK))
   {
