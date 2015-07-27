@@ -57,7 +57,7 @@ define ask (questar, ar)
   variable chr;
  
   while (chr = getch (), 0 == any (ar == chr));
-  
+ 
   () = fprintf (stderr, "\n");
  
   return chr;

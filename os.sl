@@ -17,7 +17,6 @@ public variable VERBOSITY = 0;
 public variable LOGERR = 0x01;
 public variable LOGNORM = 0x02;
 public variable LOGALL = 0x04;
-public variable ALLOWIDLED = 1;
 
 VERBOSITY |= (LOGNORM|LOGERR);
 
@@ -29,14 +28,14 @@ define on_eval_err (ar, code)
   smg->reset ();
   input->at_exit ();
   array_map (Void_Type, &tostderr, ar);
-  exit (code); 
+  exit (code);
 }
 
 private define at_exit ()
 {
   smg->reset ();
   input->at_exit ();
-  
+ 
   ifnot (NULL == STDERRFDDUP)
     () = dup2_fd (STDERRFDDUP, 2);
 
@@ -93,6 +92,8 @@ define on_eval_err (ar, code)
 
   tostderr ("err: " + string (code));
 
+  smg->init ();
+  
   draw (ERR);
 
   osloop ();
