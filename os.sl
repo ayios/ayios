@@ -96,11 +96,9 @@ define on_eval_err (ar, code)
   
   draw (ERR);
 
-  osloop ();
+  osloop (NULL);
 }
 
 _log_ ("started ayios session, with pid " + string (PID), LOGNORM);
 
-draw (ERR);
-
-osloop ();
+osloop (__argc > 1 ? __argv[1] : "shell");
