@@ -23,23 +23,25 @@ VERBOSITY |= (LOGNORM|LOGERR);
 loadfrom ("input", "inputInit", NULL, &on_eval_err);
 loadfrom ("smg", "smgInit", NULL, &on_eval_err);
 
-define on_eval_err (ar, code)
+private define _reset_ ()
 {
   smg->reset ();
   input->at_exit ();
+}
+
+define on_eval_err (ar, code)
+{
+  _reset_ ();
   array_map (Void_Type, &tostderr, ar);
   exit (code);
 }
 
 private define at_exit ()
 {
-  smg->reset ();
-  input->at_exit ();
- 
+  _reset_ ();
+
   ifnot (NULL == STDERRFDDUP)
     () = dup2_fd (STDERRFDDUP, 2);
-
-  () = fprintf (stderr, "\b");
 }
 
 define exit_me (code)
@@ -56,35 +58,27 @@ loadfrom ("api", "vedlib", NULL, &on_eval_err);
 
 HASHEDDATA = os->login ();
 
-STDERRFDDUP = redirstderr (STDERR, NULL, NULL);
+STDERRFDDUP = redir (stderr, STDERR, NULL, NULL);
 
 if (NULL == STDERRFDDUP)
   exit_me (1);
 
 STDERRFD = ();
 
+define on_eval_err (ar, exit_code)
+{
+  at_exit ();
+  array_map (&tostderr, ar);
+  exit (exit_code);
+}
+
+loadfrom ("os", "osInit", NULL, &on_eval_err);
+
 define tostderr (str)
 {
   () = lseek (STDERRFD, 0, SEEK_END);
   () = write (STDERRFD, str + "\n");
 }
-
-define on_eval_err (ar, exit_code)
-{
-  at_exit ();
- 
-  array_map (&tostderr, ar);
-
-  exit_me (exit_code);
-}
-
-define _log_ (str, logtype)
-{
-  if (VERBOSITY & logtype)
-    tostderr (str);
-}
-
-loadfrom ("os", "osInit", NULL, &on_eval_err);
 
 define on_eval_err (ar, code)
 {
@@ -93,12 +87,14 @@ define on_eval_err (ar, code)
   tostderr ("err: " + string (code));
 
   smg->init ();
-  
   draw (ERR);
-
-  osloop (NULL);
+  osloop ();
 }
 
-_log_ ("started ayios session, with pid " + string (PID), LOGNORM);
+_log_ ("started os session, with pid " + string (PID), LOGNORM);
 
-osloop (__argc > 1 ? __argv[1] : "shell");
+os->runapp (;argv0 = __argc > 1 ? __argv[1] : "shell");
+
+toplinedr (" -- OS CONSOLE --" + " (depth " + string (_stkdepth ()) + ")");
+
+osloop ();

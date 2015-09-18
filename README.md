@@ -16,7 +16,7 @@ And it does that with 40% less code. The code now is much easier
 to understand and extend.
 
 It's fairly easy to write new applications (even now at the early
-state of development). 
+state of development).
 
 The code is much more compact, so easier to maintain, develop and
 understand.
@@ -34,7 +34,7 @@ helpfull. The old code never (almost) hangup (slowly getting there), but
 the direction of the new code goes to: never fail.
 This isn't now the case, since the interface is based in vedlib, which
 is responsible for all the drawing/screen related actions, plus is being
-used for editing and will be used to execute code in future. But 
+used for editing and will be used to execute code in future. But
 this is the first time I'm facing with such challenges (writting an editor)
 and certainly could be improved, but anyway is considering a first draft.
 
