@@ -58,6 +58,8 @@ define ask (questar, ar)
 
   while (chr = getch (), 0 == any (ar == chr));
 
+  input->at_exit ();
+
   () = fprintf (stderr, "\n");
 
   return chr;
