@@ -1,18 +1,18 @@
 ifnot (ISSUPROC)
   {
-  tostderr ("you should run this script with super user rights");
+  __IO__.tostderr ("you should run this script with super user rights");
   exit (1);
   }
 
-sigprocmask (SIG_BLOCK, [SIGINT]);
+%sigprocmask (SIG_BLOCK, [SIGINT]);
 
 public variable HASHEDDATA;
-public variable STDERR = TEMPDIR + "/" + string (PID) + "stderr.os";
+public variable STDERR = TEMPDIR + "/" + string (env.vget ("PID")) + "stderr.os";
 public variable STDERRFD;
 public variable STDERRFDDUP = NULL;
 public variable ERR;
-public variable OSUID = UID;
-public variable OSUSR = USER;
+public variable OSUID = env.vget ("UID");
+public variable OSUSR = env.vget ("USER");
 public variable VERBOSITY = 0;
 public variable LOGERR = 0x01;
 public variable LOGNORM = 0x02;
@@ -20,8 +20,9 @@ public variable LOGALL = 0x04;
 
 VERBOSITY |= (LOGNORM|LOGERR);
 
-loadfrom ("input", "inputInit", NULL, &on_eval_err);
-loadfrom ("smg", "smgInit", NULL, &on_eval_err);
+load.from ("input", "inputInit", NULL;err_handler = &__err_handler__);
+load.from ("smg", "smginit", 1;err_handler = &__err_handler__);
+load.from ("os", "getpasswd", NULL;err_handler = &__err_handler__);
 
 private define _reset_ ()
 {
@@ -29,11 +30,10 @@ private define _reset_ ()
   input->at_exit ();
 }
 
-define on_eval_err (ar, code)
+define __err_handler__ (__r__)
 {
   _reset_ ();
-  array_map (Void_Type, &tostderr, ar);
-  exit (code);
+  exit (1);
 }
 
 private define at_exit ()
@@ -47,45 +47,73 @@ private define at_exit ()
 define exit_me (code)
 {
   at_exit ();
+
+  variable msg = qualifier ("msg");
+
+  ifnot (NULL == msg)
+    if (String_Type == typeof (msg) ||
+       (Array_Type == typeof (msg) && _typeof (msg) == String_Type))
+      __IO__.tostderr (msg);
+
   exit (code);
 }
 
-loadfrom ("os", "passwd", 1, &on_eval_err);
-loadfrom ("rline", "rlineInit", NULL, &on_eval_err);
-loadfrom ("os", "login", 1, &on_eval_err);
-loadfrom ("posix", "redirstreams", NULL, &on_eval_err);
-loadfrom ("api", "vedlib", NULL, &on_eval_err);
+load.from ("os", "passwd", 1;err_handler = &__err_handler__);
+load.from ("rline", "rlineInit", NULL;err_handler = &__err_handler__);
+load.from ("os", "login", 1;err_handler = &__err_handler__);
+load.from ("posix", "redirstreams", NULL;err_handler = &__err_handler__);
+load.from ("api", "vedlib", NULL;err_handler = &__err_handler__);
 
 HASHEDDATA = os->login ();
 
-STDERRFDDUP = redir (stderr, STDERR, NULL, NULL);
+(STDERRFD, STDERRFDDUP) = redir (stderr, STDERR, NULL, NULL);
 
 if (NULL == STDERRFDDUP)
   exit_me (1);
 
-STDERRFD = ();
-
-define on_eval_err (ar, exit_code)
+define __err_handler__ ()
 {
   at_exit ();
-  array_map (&tostderr, ar);
-  exit (exit_code);
+  exit (1);
 }
 
-loadfrom ("os", "osInit", NULL, &on_eval_err);
+load.from ("os", "osInit", NULL;err_handler = &__err_handler__);
 
-define tostderr (str)
+define tostderr ()
 {
+  variable fmt = "%S";
+  loop (_NARGS) fmt += " %S";
+  variable args = __pop_list (_NARGS);
+
   () = lseek (STDERRFD, 0, SEEK_END);
-  () = write (STDERRFD, str + "\n");
+
+  if (1 == length (args) && typeof (args[0]) == Array_Type &&
+    String_Type == _typeof (args[0]))
+    {
+    args = args[0];
+
+    ifnot (qualifier_exists ("n"))
+      args += "\n";
+
+    try
+      {
+      () = array_map (Integer_Type, &write, STDERRFD, args);
+      }
+    catch AnyError:
+      throw __Error, "IOWriteError::" + _function_name + "::" + errno_string (errno), NULL;
+    }
+  else
+    {
+    variable str = sprintf (fmt, __push_list (args), qualifier_exists ("n") ? "" : "\n");
+    () = write (STDERRFD, str);
+    }
 }
 
-define on_eval_err (ar, code)
+__.fput ("__IO__", "tostderr", &tostderr;ReInitFunc=1, varargs);
+__.fput ("__IO__", "tostdout", &tostderr;ReInitFunc=1, varargs);
+
+define __err_handler__ (__r__)
 {
-  array_map (&tostderr, ar);
-
-  tostderr ("err: " + string (code));
-
   smg->init ();
   draw (ERR);
   osloop ();

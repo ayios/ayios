@@ -1,41 +1,34 @@
-define tostderr (str)
-{
-  () = fprintf (stderr, "%s\n", str);
-}
-
-define tostdout (str)
-{
-  () = fprintf (stdout, "%s\n", str);
-}
-
-define on_eval_err (ar, err)
-{
-  array_map (&tostderr, ar);
-  exit (err);
-}
-
 try
   {
   () = evalfile (path_dirname (__FILE__) +  "/../std/load");
   }
 catch AnyError:
-  on_eval_err (["Error: " + __get_exception_info.message], __get_exception_info.error);
+  {
+  () = fprintf (stdout, "Error: %s %s %d\n", __get_exception_info.message,
+    __get_exception_info.function, __get_exception_info.line);
+  exit (__get_exception_info.error);
+  }
 
-loadfrom ("sys", "getpw", NULL, &on_eval_err);
-loadfrom ("os", "bootenviron", NULL, &on_eval_err);
+define __err_handler__ (__r__)
+{
+  exit (1);
+}
+
+load.from("sys", "getpw", NULL;err_handler = &__err_handler__);
+load.from ("os", "bootenviron", NULL;err_handler = &__err_handler__);
 
 ifnot (access (TEMPDIR, F_OK))
   {
   ifnot (_isdirectory (TEMPDIR))
     {
-    tostderr (TEMPDIR + " is not a directory");
+    __IO__.tostderr (TEMPDIR, " is not a directory");
     exit (1);
     }
   }
 else
   if (-1 == mkdir (TEMPDIR))
     {
-    tostderr ("cannot create directory " + errno_string (errno));
+    __IO__.tostderr ("cannot create directory ", errno_string (errno));
     exit (1);
     }
 
@@ -43,15 +36,15 @@ ifnot (access (HISTDIR, F_OK))
   {
   ifnot (_isdirectory (HISTDIR))
     {
-    tostderr (HISTDIR + " is not a directory");
+    __IO__.tostderr (HISTDIR, " is not a directory");
     exit (1);
     }
   }
 else
   if (-1 == mkdir (HISTDIR))
     {
-    tostderr ("cannot create directory " + errno_string (errno));
+    __IO__.tostderr ("cannot create directory ", errno_string (errno));
     exit (1);
     }
 
-loadfrom ("proc", "procInit", NULL, &on_eval_err);
+load.from ("proc", "procInit", NULL;err_handler = &__err_handler__);
