@@ -4,46 +4,47 @@ try
   }
 catch AnyError:
   {
-  () = fprintf (stdout, "Error: %s %s %d\n", __get_exception_info.message,
+  () = fprintf (stderr, "Error: %s %s %d\n", __get_exception_info.message,
     __get_exception_info.function, __get_exception_info.line);
   exit (__get_exception_info.error);
   }
 
 define __err_handler__ (__r__)
 {
+  IO.tostderr (__r__.err);
   exit (1);
 }
 
 load.from("sys", "getpw", NULL;err_handler = &__err_handler__);
 load.from ("os", "bootenviron", NULL;err_handler = &__err_handler__);
 
-ifnot (access (TEMPDIR, F_OK))
+ifnot (access (Dir.vget ("TEMPDIR"), F_OK))
   {
-  ifnot (_isdirectory (TEMPDIR))
+  ifnot (_isdirectory (Dir.vget ("TEMPDIR")))
     {
-    __IO__.tostderr (TEMPDIR, " is not a directory");
+    IO.tostderr (Dir.vget ("TEMPDIR"), " is not a directory");
     exit (1);
     }
   }
 else
-  if (-1 == mkdir (TEMPDIR))
+  if (-1 == mkdir (Dir.vget ("TEMPDIR")))
     {
-    __IO__.tostderr ("cannot create directory ", errno_string (errno));
+    IO.tostderr ("cannot create directory ", errno_string (errno));
     exit (1);
     }
 
-ifnot (access (HISTDIR, F_OK))
+ifnot (access (Dir.vget ("HISTDIR"), F_OK))
   {
-  ifnot (_isdirectory (HISTDIR))
+  ifnot (_isdirectory (Dir.vget ("HISTDIR")))
     {
-    __IO__.tostderr (HISTDIR, " is not a directory");
+    IO.tostderr (Dir.vget ("HISTDIR"), " is not a directory");
     exit (1);
     }
   }
 else
-  if (-1 == mkdir (HISTDIR))
+  if (-1 == mkdir (Dir.vget ("HISTDIR")))
     {
-    __IO__.tostderr ("cannot create directory ", errno_string (errno));
+    IO.tostderr ("cannot create directory ", errno_string (errno));
     exit (1);
     }
 

@@ -2,10 +2,21 @@ variable com = substr (path_basename_sans_extname (__argv[0]), 2, -1);
 variable openstdout = 0;
 define initproc (p) {}
 
+define verboseon ()
+{
+  __.fput ("IO", "tostdout?", NULL;ReInitFunc = 1,
+    __DIRNS__ = __.vget ("__", "__DIRNS__") + "/../print");
+}
+
+define verboseoff ()
+{
+  __.fput ("IO", "tostdout?", NULL;ReInitFunc = 1, FuncFname = "null_tostdout",
+    __DIRNS__ = __.vget ("__", "__DIRNS__") + "/../print");
+}
+
 load.from ("input", "inputInit", NULL;err_handler = &__err_handler__);
 load.from ("smg", "gettermsize", NULL;err_handler = &__err_handler__);
 load.from ("parse", "cmdopt", NULL;err_handler = &__err_handler__);
-load.from ("print", "null_tostdout", NULL;err_handler = &__err_handler__);
 
 variable LINES, COLUMNS;
 (LINES, COLUMNS) = gettermsize ();
@@ -20,27 +31,19 @@ define exit_me (x)
 
 define send_msg_dr (msg)
 {
-  __IO__.tostdout (msg);
+  IO.tostdout (msg);
 }
 
 define sigint_handler (sig)
 {
   input->at_exit ();
-  __IO__.tostderr ("\b\bprocess interrupted by the user");
+  IO.tostderr ("\b\bprocess interrupted by the user");
   exit_me (130);
 }
 
 signal (SIGINT, &sigint_handler);
 
-define verboseon ()
-{
-  load.from ("print", "tostdout", NULL;err_handler = &__err_handler__);
-}
-
-define verboseoff ()
-{
-  load.from ("print", "null_tostdout", NULL;err_handler = &__err_handler__);
-}
+verboseoff ();
 
 load.from ("api", "comapi", NULL;err_handler = &__err_handler__);
 
@@ -49,7 +52,7 @@ define restore_smg ();
 
 define ask (questar, ar)
 {
-  __IO__.tostderr (questar);
+  IO.tostderr (questar);
   variable len = COLUMNS - strlen (questar[-1]) - 1;
   loop (len)
     () = fprintf (stderr, "\b");
@@ -62,7 +65,7 @@ define ask (questar, ar)
 
   () = fprintf (stderr, "\n");
 
-  return chr;
+  chr;
 }
 
 load.from ("com/" + com, "comInit", NULL;err_handler = &__err_handler__);

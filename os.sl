@@ -1,18 +1,18 @@
-ifnot (ISSUPROC)
+ifnot (Env.vget ("ISSUPROC"))
   {
-  __IO__.tostderr ("you should run this script with super user rights");
+  IO.tostderr ("you should run this script with super user rights");
   exit (1);
   }
 
-%sigprocmask (SIG_BLOCK, [SIGINT]);
+sigprocmask (SIG_BLOCK, [SIGINT]);
 
 public variable HASHEDDATA;
-public variable STDERR = TEMPDIR + "/" + string (env.vget ("PID")) + "stderr.os";
+public variable STDERR = Dir.vget ("TEMPDIR") + "/" + string (Env.vget ("PID")) + "stderr.os";
 public variable STDERRFD;
 public variable STDERRFDDUP = NULL;
 public variable ERR;
-public variable OSUID = env.vget ("UID");
-public variable OSUSR = env.vget ("USER");
+public variable OSUID = Env.vget ("UID");
+public variable OSUSR = Env.vget ("USER");
 public variable VERBOSITY = 0;
 public variable LOGERR = 0x01;
 public variable LOGNORM = 0x02;
@@ -33,6 +33,7 @@ private define _reset_ ()
 define __err_handler__ (__r__)
 {
   _reset_ ();
+  IO.tostderr (__r__.err);
   exit (1);
 }
 
@@ -53,7 +54,7 @@ define exit_me (code)
   ifnot (NULL == msg)
     if (String_Type == typeof (msg) ||
        (Array_Type == typeof (msg) && _typeof (msg) == String_Type))
-      __IO__.tostderr (msg);
+      IO.tostderr (msg);
 
   exit (code);
 }
@@ -71,9 +72,10 @@ HASHEDDATA = os->login ();
 if (NULL == STDERRFDDUP)
   exit_me (1);
 
-define __err_handler__ ()
+define __err_handler__ (__r__)
 {
   at_exit ();
+  IO.tostderr (__r__.err);
   exit (1);
 }
 
@@ -91,6 +93,8 @@ define tostderr ()
     String_Type == _typeof (args[0]))
     {
     args = args[0];
+    if (Integer_Type == _typeof (args))
+      args = array_map (String_Type, &string, args);
 
     ifnot (qualifier_exists ("n"))
       args += "\n";
@@ -105,12 +109,12 @@ define tostderr ()
   else
     {
     variable str = sprintf (fmt, __push_list (args), qualifier_exists ("n") ? "" : "\n");
-    () = write (STDERRFD, str);
+    if (-1 == write (STDERRFD, str))
+      throw __Error, "IOWriteError::" + _function_name + "::" + errno_string (errno), NULL;
     }
 }
 
-__.fput ("__IO__", "tostderr", &tostderr;ReInitFunc=1, varargs);
-__.fput ("__IO__", "tostdout", &tostderr;ReInitFunc=1, varargs);
+__.fput ("IO", "tostderr?", &tostderr;ReInitFunc=1);
 
 define __err_handler__ (__r__)
 {
@@ -119,7 +123,7 @@ define __err_handler__ (__r__)
   osloop ();
 }
 
-_log_ ("started os session, with pid " + string (PID), LOGNORM);
+_log_ ("started os session, with pid " + string (Env.vget ("PID")), LOGNORM);
 
 os->runapp (;argv0 = __argc > 1 ? __argv[1] : "shell");
 
