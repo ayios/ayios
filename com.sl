@@ -5,13 +5,13 @@ define initproc (p) {}
 define verboseon ()
 {
   __.fput ("IO", "tostdout?", NULL;ReInitFunc = 1,
-    __DIRNS__ = __.vget ("__", "__DIRNS__") + "/../print");
+    __DIRNS__ = __.vget ("__", "DIRNS") + "/../print");
 }
 
 define verboseoff ()
 {
   __.fput ("IO", "tostdout?", NULL;ReInitFunc = 1, FuncFname = "null_tostdout",
-    __DIRNS__ = __.vget ("__", "__DIRNS__") + "/../print");
+    __DIRNS__ = __.vget ("__", "DIRNS") + "/../print");
 }
 
 load.from ("input", "inputInit", NULL;err_handler = &__err_handler__);

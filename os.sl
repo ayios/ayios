@@ -11,8 +11,8 @@ public variable STDERR = Dir.vget ("TEMPDIR") + "/" + string (Env.vget ("PID")) 
 public variable STDERRFD;
 public variable STDERRFDDUP = NULL;
 public variable ERR;
-public variable OSUID = Env.vget ("UID");
-public variable OSUSR = Env.vget ("USER");
+public variable OSUID = Env.vget ("uid");
+public variable OSUSR = Env.vget ("user");
 public variable VERBOSITY = 0;
 public variable LOGERR = 0x01;
 public variable LOGNORM = 0x02;
