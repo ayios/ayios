@@ -4,14 +4,12 @@ define initproc (p) {}
 
 define verboseon ()
 {
-  __.fput ("IO", "tostdout?", NULL;ReInitFunc = 1,
-    __DIRNS__ = __.vget ("__", "DIRNS") + "/../print");
+  __.fput ("IO", "tostdout?", NULL);
 }
 
 define verboseoff ()
 {
-  __.fput ("IO", "tostdout?", NULL;ReInitFunc = 1, FuncFname = "null_tostdout",
-    __DIRNS__ = __.vget ("__", "DIRNS") + "/../print");
+  __.fput ("IO", "tostdout?", NULL;FuncFname = "null_tostdout");
 }
 
 load.from ("input", "inputInit", NULL;err_handler = &__err_handler__);
