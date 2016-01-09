@@ -15,34 +15,83 @@ define __err_handler__ (__r__)
   exit (1);
 }
 
-load.from("sys", "getpw", NULL;err_handler = &__err_handler__);
-load.from ("os", "bootenviron", NULL;err_handler = &__err_handler__);
+Sys->Fun ("setgrname__", NULL);
+Sys->Fun ("setpwname__", NULL);
 
-ifnot (access (Dir.vget ("TEMPDIR"), F_OK))
+if (NULL == Env->Vget ("TERM"))
   {
-  ifnot (_isdirectory (Dir.vget ("TEMPDIR")))
+  IO.tostderr ("TERM environment variable isn't set");
+  exit (1);
+  }
+
+if (NULL == Env->Vget ("LANG"))
+  {
+  IO.tostderr ("LANG environment variable isn't set");
+  exit (1);
+  }
+
+if (5 > strlen (Env->Vget ("LANG")) || "UTF-8" != substr (Env->Vget ("LANG"),
+  strlen (Env->Vget ("LANG")) - 4, -1))
+  {
+  IO.tostderr ("locale: " + Env->Vget ("LANG") + " isn't UTF-8 (Unicode), or misconfigured");
+  exit (1);
+  }
+
+if (NULL == getenv ("HOME"))
+  {
+  IO.tostderr ("HOME environment variable isn't set");
+  exit (1);
+  }
+
+if (NULL == Env->Vget ("PATH"))
+  {
+  IO.tostderr ("PATH environment variable isn't set");
+  exit (1);
+  }
+
+SLSH_BIN = Sys.which ("slsh");
+SUDO_BIN = Sys.which ("sudo");
+
+Env->Var ("user", Sys.setpwname (Env->Vget ("uid"), &$1));
+
+if (NULL == Env->Vget ("user"))
+  {
+  IO.tostderr (__tmp ($1));
+  exit (1);
+  }
+
+Env->Var ("group", Sys.setgrname (Env->Vget ("gid"), &$1));
+
+if (NULL == Env->Vget ("group"))
+  {
+  IO.tostderr (__tmp ($1));
+  exit (1);
+  }
+ifnot (access (Dir->Vget ("TEMPDIR"), F_OK))
+  {
+  ifnot (_isdirectory (Dir->Vget ("TEMPDIR")))
     {
-    IO.tostderr (Dir.vget ("TEMPDIR"), " is not a directory");
+    IO.tostderr (Dir->Vget ("TEMPDIR"), " is not a directory");
     exit (1);
     }
   }
 else
-  if (-1 == mkdir (Dir.vget ("TEMPDIR")))
+  if (-1 == mkdir (Dir->Vget ("TEMPDIR")))
     {
     IO.tostderr ("cannot create directory ", errno_string (errno));
     exit (1);
     }
 
-ifnot (access (Dir.vget ("HISTDIR"), F_OK))
+ifnot (access (Dir->Vget ("HISTDIR"), F_OK))
   {
-  ifnot (_isdirectory (Dir.vget ("HISTDIR")))
+  ifnot (_isdirectory (Dir->Vget ("HISTDIR")))
     {
-    IO.tostderr (Dir.vget ("HISTDIR"), " is not a directory");
+    IO.tostderr (Dir->Vget ("HISTDIR"), " is not a directory");
     exit (1);
     }
   }
 else
-  if (-1 == mkdir (Dir.vget ("HISTDIR")))
+  if (-1 == mkdir (Dir->Vget ("HISTDIR")))
     {
     IO.tostderr ("cannot create directory ", errno_string (errno));
     exit (1);

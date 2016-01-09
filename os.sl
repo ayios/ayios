@@ -1,4 +1,4 @@
-ifnot (Env.vget ("ISSUPROC"))
+ifnot (Env->Vget ("ISSUPROC"))
   {
   IO.tostderr ("you should run this script with super user rights");
   exit (1);
@@ -7,12 +7,12 @@ ifnot (Env.vget ("ISSUPROC"))
 sigprocmask (SIG_BLOCK, [SIGINT]);
 
 public variable HASHEDDATA;
-public variable STDERR = Dir.vget ("TEMPDIR") + "/" + string (Env.vget ("PID")) + "stderr.os";
+public variable STDERR = Dir->Vget ("TEMPDIR") + "/" + string (Env->Vget ("PID")) + "stderr.os";
 public variable STDERRFD;
 public variable STDERRFDDUP = NULL;
 public variable ERR;
-public variable OSUID = Env.vget ("uid");
-public variable OSUSR = Env.vget ("user");
+public variable OSUID = Env->Vget ("uid");
+public variable OSUSR = Env->Vget ("user");
 public variable VERBOSITY = 0;
 public variable LOGERR = 0x01;
 public variable LOGNORM = 0x02;
@@ -20,9 +20,13 @@ public variable LOGALL = 0x04;
 
 VERBOSITY |= (LOGNORM|LOGERR);
 
+Sys->Fun ("setpwuidgid__", NULL);
+
 load.from ("input", "inputInit", NULL;err_handler = &__err_handler__);
 load.from ("smg", "smginit", 1;err_handler = &__err_handler__);
 load.from ("os", "getpasswd", NULL;err_handler = &__err_handler__);
+
+smg->init ();
 
 private define _reset_ ()
 {
@@ -114,7 +118,7 @@ define tostderr ()
     }
 }
 
-__.fput ("IO", "tostderr?", &tostderr;ReInitFunc=1);
+IO->Fun ("tostderr?", &tostderr);
 
 define __err_handler__ (__r__)
 {
@@ -123,7 +127,7 @@ define __err_handler__ (__r__)
   osloop ();
 }
 
-_log_ ("started os session, with pid " + string (Env.vget ("PID")), LOGNORM);
+_log_ ("started os session, with pid " + string (Env->Vget ("PID")), LOGNORM);
 
 os->runapp (;argv0 = __argc > 1 ? __argv[1] : "shell");
 
